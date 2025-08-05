@@ -30,7 +30,7 @@ jobs:
         run: pip install -U github-dependents-info
 
       - name: Pipe dependents data to file
-        run: github-dependents-info --repo alphagov/govuk-frontend --json > ./data/raw-deps.json
+        run: github-dependents-info --repo alphagov/govuk-frontend --json > ./data/govuk-frontend-dependents.json
 
       - name: Configure git
         run: |
