@@ -1,0 +1,80 @@
+name: Get GOV.UK Frontend dependents
+run-name: Get dependents
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+env:
+  GITHUB_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  Get-latest-dependent-data:
+    name: Get latest dependent data
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5.6.0
+
+      - name: Install github-dependents-info
+        run: pip install -U github-dependents-info
+
+      - name: Pipe dependents data to file
+        run: github-dependents-info --repo alphagov/govuk-frontend --json > ./data/raw-deps.json
+
+      - name: Configure git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and push branch with changes
+        run: |
+          # Create and switch to new branch
+          git checkout -b update-filtered-data-${{ github.ref_name }}
+          
+          # Add changes
+          git add ./data/raw-deps.json
+          
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          
+          # Commit changes
+          git commit -m "Get latest filtered dependents data and rejections - ${{ github.ref_name }}"
+          
+          # Push branch
+          git push origin update-filtered-data-${{ github.ref_name }}
+
+      - name: Create or update pull request
+        run: |
+          # Check if PR already exists
+          if gh pr view update-filtered-data-${{ github.ref_name }} --json number > /dev/null 2>&1; then
+            echo "Pull request already exists for branch update-filtered-data-${{ github.ref_name }}, updating it"
+            
+            # Update existing PR title and body
+            gh pr edit update-filtered-data-${{ github.ref_name }} \
+              --title "Get latest filtered dependents data and rejections - ${{ github.ref_name }}" \
+              --body "Generated automatically by github action (updated: $(date))"
+          else
+            echo "Creating new pull request"
+            
+            # Create new PR
+            gh pr create \
+              --title "Get latest filtered dependents data and rejections - ${{ github.ref_name }}" \
+              --body "Generated automatically by github action" \
+              --base ${{ github.head_ref || github.ref_name }}
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

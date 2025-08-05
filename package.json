@@ -1,0 +1,19 @@
+{
+  "name": "data-scripts",
+  "version": "1.0.0",
+  "description": "Data gathering scripts",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/domoscargin/data-scripts.git"
+  },
+  "author": "Brett Kyle <brett.kyle@dsit.gov.uk>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/domoscargin/data-scripts/issues"
+  },
+  "homepage": "https://github.com/domoscargin/data-scripts#readme"
+}
