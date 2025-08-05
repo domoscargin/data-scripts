@@ -2,9 +2,11 @@
   "name": "data-scripts",
   "version": "1.0.0",
   "description": "Data gathering scripts",
-  "main": "index.js",
+  "type": "module",
+  "main": "index.mjs",
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "data:cross-gov-services": "node scripts/get-cross-gov-services-data.mjs"
   },
   "repository": {
     "type": "git",
