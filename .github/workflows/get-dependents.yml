@@ -30,7 +30,7 @@ jobs:
         run: pip install -U github-dependents-info
 
       - name: Pipe dependents data to file
-        run: github-dependents-info --repo alphagov/govuk-frontend --json > ./data/raw-deps.json
+        run: github-dependents-info --repo alphagov/govuk-frontend --json > ./data/govuk-frontend-dependents.json
 
       - name: Configure git
         run: |
@@ -39,11 +39,23 @@ jobs:
 
       - name: Create and push branch with changes
         run: |
+          BRANCH_NAME="update-filtered-data-${{ github.ref_name }}"
+          
+          # Check if branch exists locally and delete it
+          if git branch --list "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
+            git branch -D "$BRANCH_NAME"
+          fi
+          
+          # Check if branch exists on remote and delete it
+          if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
+            git push origin --delete "$BRANCH_NAME"
+          fi
+          
           # Create and switch to new branch
-          git checkout -b update-filtered-data-${{ github.ref_name }}
+          git checkout -b "$BRANCH_NAME"
           
           # Add changes
-          git add ./data/raw-deps.json
+          git add ./data/govuk-frontend-dependents.json
           
           # Check if there are changes to commit
           if git diff --staged --quiet; then
@@ -55,7 +67,7 @@ jobs:
           git commit -m "Get latest filtered dependents data and rejections - ${{ github.ref_name }}"
           
           # Push branch
-          git push origin update-filtered-data-${{ github.ref_name }}
+          git push origin "$BRANCH_NAME"
 
       - name: Create or update pull request
         run: |
