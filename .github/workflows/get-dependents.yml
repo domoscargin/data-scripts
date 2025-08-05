@@ -39,8 +39,20 @@ jobs:
 
       - name: Create and push branch with changes
         run: |
+          BRANCH_NAME="update-filtered-data-${{ github.ref_name }}"
+          
+          # Check if branch exists locally and delete it
+          if git branch --list "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
+            git branch -D "$BRANCH_NAME"
+          fi
+          
+          # Check if branch exists on remote and delete it
+          if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
+            git push origin --delete "$BRANCH_NAME"
+          fi
+          
           # Create and switch to new branch
-          git checkout -b update-filtered-data-${{ github.ref_name }}
+          git checkout -b "$BRANCH_NAME"
           
           # Add changes
           git add ./data/govuk-frontend-dependents.json
@@ -55,7 +67,7 @@ jobs:
           git commit -m "Get latest filtered dependents data and rejections - ${{ github.ref_name }}"
           
           # Push branch
-          git push origin update-filtered-data-${{ github.ref_name }}
+          git push origin "$BRANCH_NAME"
 
       - name: Create or update pull request
         run: |
